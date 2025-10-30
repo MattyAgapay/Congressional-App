@@ -15,7 +15,7 @@ document.querySelectorAll('.nav-link[href="#"]').forEach(a => {
   a.addEventListener('click', e => e.preventDefault());
 });
 
-// Optional: open encyclopedia toast for now (keeps your partner's layout)
+// Temporary encyclopedia toast (keeps your partner’s layout)
 document.getElementById('openDex')?.addEventListener('click', (e) => {
   e.preventDefault();
   let t = document.getElementById('ff-toast');
