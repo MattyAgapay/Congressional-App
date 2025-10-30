@@ -23,6 +23,7 @@
 </head>
 <body>
   <div class="app">
+    <!-- Header -->
     <header class="app-header">
       <div class="brand">FISHLINE FUTURES</div>
       <div class="subtitle">Sustainability · Kapu · Reef Stewardship</div>
@@ -30,13 +31,13 @@
     </header>
 
     <!-- Landing -->
-    <section id="landing" class="screen active">
+    <section id="landing" class="screen active" aria-label="Landing">
       <div class="landing-card">
         <div>
           <h1>Fishline Futures</h1>
           <p>
             An educational simulator blending <b>reef management</b>, <b>Hawaiian cultural stewardship</b>,
-            and <b>climate resilience</b>. Make up to five policy decisions and watch reef health change.
+            and <b>climate resilience</b>. Make up to five policy decisions and watch the reef respond.
           </p>
         </div>
         <div class="landing-actions">
@@ -47,17 +48,31 @@
     </section>
 
     <!-- Map / Simulator -->
-    <section id="map-screen" class="screen">
-      <aside class="rail">
-        <button id="navHome" class="rail-btn">🏠</button>
-        <button id="navPolicies" class="rail-btn">⚖️</button>
-        <button id="navDex" class="rail-btn">📘</button>
-        <button id="navSettings" class="rail-btn">⚙️</button>
+    <section id="map-screen" class="screen" aria-label="Map and Simulator">
+      <!-- Hover-expand rail (desktop) / bottom bar (mobile) -->
+      <aside class="rail" id="rail" data-collapsed="1" aria-label="Navigation">
+        <div class="rail-group">
+          <button id="navHome" class="rail-btn" data-tip="Home">
+            <span class="icon">🏠</span><span class="label">Home</span>
+          </button>
+          <button id="navPolicies" class="rail-btn" data-tip="Policies">
+            <span class="icon">⚖️</span><span class="label">Policies</span>
+          </button>
+          <button id="navDex" class="rail-btn" data-tip="Encyclopedia">
+            <span class="icon">📘</span><span class="label">Encyclopedia</span>
+          </button>
+          <button id="navSettings" class="rail-btn" data-tip="Settings">
+            <span class="icon">⚙️</span><span class="label">Settings</span>
+          </button>
+        </div>
+        <div class="rail-sep"></div>
       </aside>
 
-      <div id="map"></div>
+      <!-- Map -->
+      <div id="map" aria-label="Hawaiʻi Reef Map"></div>
 
-      <aside class="panel">
+      <!-- Right Status / Decisions Panel -->
+      <aside class="panel" aria-live="polite">
         <h3>Reef Status — <span id="reefName">Hāʻena</span></h3>
 
         <div class="stats">
@@ -66,7 +81,6 @@
             <div class="bar"><i id="reefBar" style="width:70%"></i></div>
             <div id="reefVal" class="value">70 / 100</div>
           </div>
-
           <div class="stat">
             <div class="label">Fish Population</div>
             <div class="bar"><i id="fishBar" style="width:65%"></i></div>
@@ -74,8 +88,8 @@
           </div>
         </div>
 
-        <div class="decisions" id="decisions"></div>
-        
+        <div id="decisions" class="decisions"></div>
+
         <div class="panel-footer">
           <div>Turns left: <b id="turnsLeft">5</b></div>
           <button class="btn ghost" id="resetBtn">Reset</button>
@@ -83,13 +97,14 @@
       </aside>
     </section>
 
-    <!-- Story Modal -->
-    <div class="modal" id="storyModal">
+    <!-- Story / Onboarding -->
+    <div class="modal" id="storyModal" role="dialog" aria-modal="true" aria-hidden="true">
       <div class="card">
         <div class="story">
-          <h3>Welcome, Konohiki</h3>
+          <h3>(Story Setup)</h3>
           <p>
-            You steward a reef facing bleaching & overfishing. Use cultural kapu & policy to protect the ecosystem.
+            You’re the <b>konohiki</b> of a reef under pressure from bleaching and overfishing.
+            Use <b>kapu</b> and policy to protect the ecosystem while supporting community needs.
           </p>
           <div class="actions">
             <button class="btn ghost" id="skipStory">Skip</button>
@@ -99,8 +114,8 @@
       </div>
     </div>
 
-    <!-- Encyclopedia -->
-    <div class="drawer" id="dex">
+    <!-- Species Encyclopedia Drawer -->
+    <div class="drawer" id="dex" aria-label="Species Encyclopedia">
       <div class="drawer-head">
         <h3>Species Encyclopedia</h3>
         <button class="btn ghost" id="closeDex">Close</button>
@@ -108,10 +123,18 @@
       <div id="dexList" class="dex-list"></div>
     </div>
 
-    <div class="toast" id="toast"></div>
+    <!-- Toast -->
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
   </div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <!-- App JS -->
   <script src="script.js" defer></script>
 </body>
 </html>
