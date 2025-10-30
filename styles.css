@@ -286,3 +286,107 @@ html,body{
   background:#fff;
   border-left:2px solid var(--mist);
   padding:14px;
+  box-shadow:var(--shadow);
+  transition:right .25s ease;
+  overflow:auto;
+}
+.drawer.open{ right:0 }
+.drawer-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.dex-list .card{ margin-bottom:10px }
+
+/* encyclopedia hero card */
+.dex-explore{
+  background:var(--lava);
+  color:#fff;
+  border-radius:16px;
+  display:grid;
+  grid-template-columns:1fr 140px;
+  overflow:hidden;
+  min-height:160px;
+  margin-bottom:12px;
+}
+.dex-explore .big{
+  display:grid;
+  place-items:center;
+  background:var(--ocean);
+  clip-path:circle(85% at 50% 50%);
+}
+.dex-explore .big::after{
+  content:"";
+  width:120px;
+  height:120px;
+  border-radius:50%;
+  background:rgba(255,255,255,.15);
+}
+.dex-explore .meta{
+  display:grid;
+  align-content:end;
+  padding:14px;
+}
+
+/* ========= MODALS ========= */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  place-items:center;
+  padding:20px;
+}
+.modal.open{ display:grid }
+.modal .card{
+  width:min(820px,92vw);
+  background:#fff;
+  border-radius:var(--radius);
+  padding:20px;
+  border:2px solid var(--mist);
+  box-shadow:var(--shadow);
+}
+
+/* ========= TOAST ========= */
+.toast{
+  position:fixed;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#111;
+  color:#fff;
+  padding:8px 14px;
+  border-radius:999px;
+  opacity:0;
+  transition:.2s;
+}
+.toast.show{ opacity:1 }
+
+/* ========= MOBILE ========= */
+@media(max-width:1000px){
+  #map-screen{
+    grid-template-columns:1fr;
+    grid-template-rows:auto 1fr auto;
+  }
+
+  .rail{
+    position:fixed;
+    bottom:0; left:0; right:0;
+    height:64px;
+    width:100%;
+    flex-direction:row;
+    justify-content:space-around;
+    border-radius:16px 16px 0 0;
+  }
+  .rail:hover{ width:100% }
+  .label{ display:none !important }
+
+  #map{
+    height:calc(50 * var(--app-vh));
+    margin-bottom:10px;
+  }
+  .panel{
+    height:auto;
+    padding-bottom:calc(88px + env(safe-area-inset-bottom));
+  }
+}
