@@ -179,6 +179,7 @@ html,body{
   height:100%;
   background:linear-gradient(90deg,var(--bad),var(--warn),var(--ok));
 }
+.value{font-size:12px;margin-top:4px}
 
 /* Decisions */
 .decisions{
@@ -230,4 +231,40 @@ html,body{
   inset:0;
   background:rgba(0,0,0,.45);
   display:none;
-  place-items:cen
+  place-items:center;
+}
+.modal.open{display:grid;}
+.modal .card{
+  width:min(800px,92vw);
+  background:white;
+  border-radius:var(--radius);
+  padding:20px;
+  border:2px solid var(--mist);
+  box-shadow:var(--shadow);
+}
+
+/* ========= TOAST ========= */
+.toast{
+  position:fixed;
+  bottom:16px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#111;
+  color:#fff;
+  padding:8px 14px;
+  border-radius:999px;
+  opacity:0;
+  transition:.2s;
+}
+.toast.show{opacity:1;}
+
+/* ========= RESPONSIVE ========= */
+@media (max-width:1000px){
+  #map-screen{
+    grid-template-columns:1fr;
+    grid-template-rows:auto 1fr auto;
+  }
+  .rail{flex-direction:row;height:auto;}
+  #map{height:50vh;}
+  .panel{height:auto;}
+}
