@@ -1,226 +1,306 @@
-/* ==== keep partner visuals; fix bugs & wire gameplay ==== */
-
-// iPhone 100vh fix
-function setVH(){ document.documentElement.style.setProperty('--app-vh', `${window.innerHeight * 0.01}px`); }
-setVH();
-addEventListener('resize', setVH);
-addEventListener('orientationchange', setVH);
-
-// Simple game state (stats shown via sidebar "Player Stats")
-const Game = { reefHealth: 70, fishPop: 65, turns: 5, currentIndex: null };
-function clamp(n){ return Math.max(0, Math.min(100, n)); }
-window.Game = Game; // expose for stats panel
-
-// Reef data (partner content)
+// Input GeoJSON
 const reefData = {
   "type": "FeatureCollection",
   "features": [
-    {
-      "type":"Feature",
-      "properties": { "marker-color":"#b50916", "name":"Maunalua Beach Bay" },
-      "geometry": { "type":"Point", "coordinates":[-157.7256809877041,21.26149342810224] }
-    },
-    {
-      "type":"Feature",
-      "properties": {
-        "name":"Maunalua Beach Bay",
-        "dilemma":"OH NO! <br><br>The once rich biodiversity of their reefes teeming with colorful fish that maintained a delicate balance, over the past decade, a troubling decline in reef fish populations have become evident—a staggering 40% drop, particularly among the herbivorous species.<br><br> These herbivorous species are known to control the invasive algae overtaking the reefs, suffocating corals and endangering the fragile marine life that their way of life depended on. <br><br> Please help!",
-        "choices":[
-          {
-            "title":"Temporary No-Fishing Zone",
-            "description":"<br>You propose a 1-year closure of fishing in the most damaged reef area",
-            "reefImpact":35,
-            "fishPopulationImpactMin":20,
-            "fishPopulationImpactMax":30,
-            "displayReefHealth":"+35",
-            "displayFishPopulation":"+20-30%"
-          },
-          {
-            "title":"Community-Led Catch Limits",
-            "description":"<br>You collaborate with local fishers to limit the size and number of reef fish caught",
-            "reefImpact":10,
-            "fishPopulationImpact":-10,
-            "displayReefHealth":"+10",
-            "displayFishPopulation":"-10%"
-          },
-          {
-            "title":"Education & Monitoring First",
-            "description":"<br>You start community workshops and reef surveys without changing fishing rules",
-            "reefImpact":10,
-            "fishPopulationImpact":-30,
-            "displayReefHealth":"+10",
-            "displayFishPopulation":"-30%"
-          }
-        ],
-        "stroke":"#5B5F71",
-        "fill":"#A4A8B6"
+        {
+     "type": "Feature",
+     "properties": {
+       "marker-color": "#b50916",
+       "name": "Maunalua Beach Bay"
       },
-      "geometry":{
-        "type":"Polygon",
-        "coordinates":[[[-157.70466051284626,21.259299602174437],[-157.70943129395155,21.2592998046281],[-157.7115511829742,21.261110849675532],[-157.71119879484337,21.264075130235724],[-157.70872806820267,21.268685670008495],[-157.70925624703327,21.272636504574393],[-157.70854769942153,21.277411130884573],[-157.70996000078696,21.279222548204785],[-157.71279149082807,21.281525241117365],[-157.7149131769268,21.282676122130894],[-157.71667990089654,21.283004888310188],[-157.71897771196478,21.28448402290074],[-157.72198486665084,21.28414705322882],[-157.72180636180843,21.282340864451314],[-157.72392317155928,21.280862569229058],[-157.7278076818471,21.281190316341025],[-157.73345360091142,21.282005344674104],[-157.73310563345342,21.27971400994167],[-157.73593239508898,21.279550127826795],[-157.73610244087166,21.28118745039386],[-157.73752063971762,21.27987785872709],[-157.73999324328682,21.27987785872709],[-157.743174972091,21.280373109207048],[-157.7440619971232,21.278399366972963],[-157.75006963613524,21.277411465968854],[-157.75482608815432,21.276256806817713],[-157.7539487764978,21.27411789154742],[-157.75851482765228,21.27329421525816],[-157.76113095003296,21.276743504503145],[-157.77020277886072,21.27230726660234],[-157.77639424972497,21.269837510875305],[-157.77904622109077,21.266050316826707],[-157.786464413383,21.261111036470837],[-157.7908680715161,21.258314964432813],[-157.79033996403393,21.25568046266376],[-157.79351160576394,21.254859525789797],[-157.7963289128544,21.257001487801944],[-157.79563575895975,21.25370591721108],[-157.70466051284626,21.259299602174437]]]
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-157.7256809877041, 21.26149342810224]
       }
     },
     {
-      "type":"Feature",
+      "type": "Feature",
       "properties": {
-        "name":"Maunalua Beach Bay",
-        "dilemma":"OH NO!<br><br> Overfishing of nocturnal reef predators—especially through unregulated night spearfishing—has led to a sharp decline in species like taʻape, menpachi, and kūmū. These predators once kept invertebrate populations in check. Without them, small crustaceans and bioeroding species have surged, destabilizing coral structures from within.",
-        "choices":[
-          { "title":"Night OverFishing Ban", "description":"You will enact a full ban on nighttime spearfishing within designated reef zones of Maunalua Bay.", "reefImpact":85, "fishPopulationImpact":70, "displayReefHealth":"+8", "displayFishPopulation":"+65%" },
-          { "title":"Predator Species Hatchery Restocking", "description":"You would establish a hatchery initiative focused on breeding and releasing native predator species into Maunalua Bay.", "reefImpact":65, "fishPopulationImpact":90, "displayReefHealth":"+7", "displayFishPopulation":"+75%" },
-          { "title":"Community-Led Monitoring", "description":"You would enact a policy that empowers local fishers, students, and cultural practitioners to monitor reef health and enforce seasonal fishing closures", "reefImpact":15, "fishPopulationImpact":60, "displayReefHealth":"+1", "displayFishPopulation":"+60%" }
-        ],
-        "stroke":"#e17f2a",
-        "fill":"#e08e45"
+            "name": "Maunalua Beach Bay",
+            "dilemma": "OH NO! <br><br>The once rich biodiversity of their reefes teeming with colorful fish that maintained a delicate balance, over the past decade, a troubling decline in reef fish populations have become evident—a staggering 40% drop, particularly among the herbivorous species.<br><br> These herbivorous species are known to control the invasive algae overtaking the reefs, suffocating corals and endangering the fragile marine life that their way of life depended on. <br><br> Please help!",
+              "choices": [
+                { 
+                  "title": "Temporary No-Fishing Zone",
+                  "description": "<br>You propose a 1-year closure of fishing in the most damaged reef area",
+                  "reefImpact": 35, // numeric percent
+                  "fishPopulationImpactMin": 20, 
+                  "fishPopulationImpactMax": 30,
+                  "displayReefHealth": "+35",
+                  "displayFishPopulation": "+ 20-30%"
+                },
+                { 
+                  "title": "Community-Led Catch Limits",
+                  "description": "<br>You collaborate with local fishers to limit the size and number of reef fish caught", 
+                  "reefImpact": 10, 
+                  "fishPopulationImpact": -10, 
+                  "displayReefHealth": "+ 10",
+                  "displayFishPopulation": "- 10%"
+                },
+                { 
+                  "title": "Education & Monitoring First", 
+                  "description": "<br>You start community workshops and reef surveys without changing fishing rules", 
+                  "reefImpact": 10, 
+                  "fishPopulationImpact": -30, 
+                  "displayReefHealth": "- 20",
+                  "displayFishPopulation": "- 30%"
+                }
+              ],
+       
+            "stroke": "#5B5F71",
+            "fill": "#A4A8B6"
+      },
+      "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+            [
+                  [-157.70466051284626, 21.259299602174437],
+                  [-157.70943129395155, 21.2592998046281],
+                  [-157.7115511829742, 21.261110849675532],
+                  [-157.71119879484337, 21.264075130235724],
+                  [-157.70872806820267, 21.268685670008495],
+                  [-157.70925624703327, 21.272636504574393],
+                  [-157.70854769942153, 21.277411130884573],
+                  [-157.70996000078696, 21.279222548204785],
+                  [-157.71279149082807, 21.281525241117365],
+                  [-157.7149131769268, 21.282676122130894],
+                  [-157.71667990089654, 21.283004888310188],
+                  [-157.71897771196478, 21.28448402290074],
+                  [-157.72198486665084, 21.28414705322882],
+                  [-157.72180636180843, 21.282340864451314],
+                  [-157.72392317155928, 21.280862569229058],
+                  [-157.7278076818471, 21.281190316341025],
+                  [-157.73345360091142, 21.282005344674104],
+                  [-157.73310563345342, 21.27971400994167],
+                  [-157.73593239508898, 21.279550127826795],
+                  [-157.73610244087166, 21.28118745039386],
+                  [-157.73752063971762, 21.27987785872709],
+                  [-157.73999324328682, 21.27987785872709],
+                  [-157.743174972091, 21.280373109207048],
+                  [-157.7440619971232, 21.278399366972963],
+                  [-157.75006963613524, 21.277411465968854],
+                  [-157.75482608815432, 21.276256806817713],
+                  [-157.7539487764978, 21.27411789154742],
+                  [-157.75851482765228, 21.27329421525816],
+                  [-157.76113095003296, 21.276743504503145],
+                  [-157.77020277886072, 21.27230726660234],
+                  [-157.77639424972497, 21.269837510875305],
+                  [-157.77904622109077, 21.266050316826707],
+                  [-157.786464413383, 21.261111036470837],
+                  [-157.7908680715161, 21.258314964432813],
+                  [-157.79033996403393, 21.25568046266376],
+                  [-157.79351160576394, 21.254859525789797],
+                  [-157.7963289128544, 21.257001487801944],
+                  [-157.79563575895975, 21.25370591721108],
+                  [-157.70466051284626, 21.259299602174437]
+            ]
+
+         ]
+      } 
+    },
+    {
+      "type": "Feature",
+      "properties": {
+            "name": "Maunalua Beach Bay",
+            "dilemma": "OH NO!<br><br> Overfishing of nocturnal reef predators—especially through unregulated night spearfishing—has led to a sharp decline in species like taʻape, menpachi, and kūmū. These predators once kept invertebrate populations in check. Without them, small crustaceans and bioeroding species have surged, destabilizing coral structures from within.",
+            "choices": [
+              { "title": "Night OverFishing Ban", "description": "You will enact a full ban on nighttime spearfishing within designated reef zones of Maunalua Bay.", 
+               "reefImpact": 85, 
+               "fishPopulationImpact": 70, 
+               "displayReefHealth": "+ 8",
+               "displayFishPopulation": "+ 65%" },
+              { "title": "Predator Species Hatchery Restocking", "description": "You would establish a hatchery initiative focused on breeding and releasing native predator species into Maunalua Bay.", 
+              "reefImpact": 65, 
+               "fishPopulationImpact": 90, 
+               "displayReefHealth": "+ 7",
+               "displayFishPopulation": "+ 75%" },
+              { "title": "Community-Led Monitoring", "description": "You would enact a policy that empowers local fishers, students, and cultural practitioners to monitor reef health and enforce seasonal fishing closures", 
+              "reefImpact": 15, 
+               "fishPopulationImpact": 60, 
+               "displayReefHealth": "- 20",
+               "displayFishPopulation": "- 10%" }
+            ],
+       
+            "stroke": "#e17f2a",
+            "fill": "#e08e45"
       }
     }
   ]
 };
 
-let OahuMap, geojson;
-const dilemmaFeatures = reefData.features.filter(f => f.properties && f.properties.choices);
+let geojson; // Declare outside for scope
+const dilemmaFeatures = reefData.features.filter(f => f.properties.choices);
+
+// Store polygon layer references for each dilemma feature
 const featureLayers = [];
-window.dilemmaFeatures = dilemmaFeatures;
-window.featureLayers = featureLayers;
-window.reefData = reefData;
 
-// Color from state (for polygon feedback)
-function reefHealthColorFromState(){
-  const h = Game.reefHealth;
-  return h >= 75 ? "#2ECC71" : h >= 50 ? "#F1C40F" : "#E74C3C";
-}
 
-// Helpers to read choice impact
-function formatPercentNumber(n){
-  if (typeof n !== 'number' || isNaN(n)) return null;
-  const sign = n > 0 ? '+' : '';
-  return `${sign}${n}%`;
-}
-function computeFishDisplay(choice){
-  const min = (typeof choice.fishPopulationImpactMin === 'number') ? choice.fishPopulationImpactMin
-           : (typeof choice.fishImpactMin === 'number') ? choice.fishImpactMin : undefined;
-  const max = (typeof choice.fishPopulationImpactMax === 'number') ? choice.fishPopulationImpactMax
-           : (typeof choice.fishImpactMax === 'number') ? choice.fishImpactMax : undefined;
-  if (typeof min === 'number' && typeof max === 'number' && min !== max){
-    const mid = Math.round(((min + max)/2)*10)/10;
-    const rangeStr = `${min>0?'+':''}${min}-${max}%`;
-    return { display: rangeStr, midpointValue: mid };
+// Computer effectiveness score
+function effectiveness(choice, { jitterRange = 0.4, deterministic = false } = {}) {
+  if (!choice) return 0; // No input
+  const rh = String(choice.reefHealth || "").trim();
+
+  let bias = 0;
+  switch (rh) {
+    case "++": bias = 0.8; break;
+    case "+":  bias = 0.5; break;
+    case "+-": bias = 0;   break;
+    case "-":  bias = -0.5;break;
+    case "--": bias = -0.8;break;
+    default:   bias = 0;   break;
   }
-  const single = (typeof choice.fishPopulationImpact === 'number') ? choice.fishPopulationImpact
-              : (typeof choice.fishImpact === 'number') ? choice.fishImpact
-              : (typeof choice.fishPopulationImpactMin === 'number' && typeof choice.fishPopulationImpactMax !== 'number') ? choice.fishPopulationImpactMin
-              : undefined;
-  if (typeof single === 'number') return { display: formatPercentNumber(single), midpointValue: single };
-  if (choice.displayFishPopulation) return { display: choice.displayFishPopulation, midpointValue: undefined };
-  if (choice.fishPopulation) return { display: String(choice.fishPopulation), midpointValue: undefined };
-  return { display: "+-", midpointValue: undefined };
-}
-function computeReefDisplay(choice){
-  if (typeof choice.reefImpact === 'number') return { display: formatPercentNumber(choice.reefImpact), value: choice.reefImpact };
-  if (choice.displayReefHealth) return { display: choice.displayReefHealth, value: undefined };
-  if (choice.reefHealth) return { display: String(choice.reefHealth), value: undefined };
-  return { display: "+-", value: undefined };
+
+  // Results change each play
+  const jitter = deterministic ? 0 : (Math.random() * (jitterRange * 2) - jitterRange);
+  const score = Math.max(-1, Math.min(1, bias + jitter));
+  return score;
 }
 
-// Map init (KEEP partner look; fix zoom bug)
+function reefHealthColorChange(score) {
+  // score > 8 => green (improve)
+  // 04 >= score <= 6 orange (moderate)
+  // score < 04 => red (worsened)
+
+  if (score >= 8) return { color: "2ECC71", label: "Improved" }; // Good
+  if (score <= 3) return { color: "#E43825", label: "Worsened" }; // Severe
+  return { color: "#F19955", label: "Moderate" }; // Moderate
+}
+
 document.addEventListener("DOMContentLoaded", function () {
-  OahuMap = L.map('main-map').setView([21.270435, -157.733683], 13); // 13 avoids blank tiles
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '© OpenStreetMap'
-  }).addTo(OahuMap);
-  L.control.zoom({position:'topright'}).addTo(OahuMap);
-  window.__FF_MAP = OahuMap;
+  // Initalize the map
+      var OahuMap = L.map('main-map').setView([21.270435, -157.733683], 19);
+      
+      // Add OpenStreetMap tiles
+       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+             maxZoom: 13,
+             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }).addTo(OahuMap);
+  
+    // Replace manual markers
+    geojson = L.geoJSON(reefData, {
+            pointToLayer: function (feature, latlng) {
+                  // No popup
+                  return L.circleMarker(latlng, {
+                        radius: 8,
+                        fillColor: feature.properties["marker-color"] || "#3388ff",
+                        color: "#000",
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                  });
+            },
+            style: function (feature) {
+                  // Applies only to polygons
+                  return {
+                        color: feature.properties && feature.properties.stroke ? feature.properties.stroke : "#3388ff",
+                        fillColor: feature.properties && feature.properties.fill ? feature.properties.fill : "#3388ff",
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.5
+                  };
+            },
+      
+            onEachFeature: function (feature, layer) {
+              // Bind popup and store polygon layers for dilemmas
+              if (feature.geometry && feature.geometry.type !== "Point") {
+                const props = feature.properties || {};
+                // store reference to this layer if it's a dilemma feature
+                const dilemmaIndex = dilemmaFeatures.indexOf(feature);
+                if (dilemmaIndex >= 0) {
+                  featureLayers[dilemmaIndex] = layer;
+                }
 
-  geojson = L.geoJSON(reefData, {
-    pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
-      radius: 8,
-      fillColor: feature.properties["marker-color"] || "#3388ff",
-      color: "#000",
-      weight: 1,
-      opacity: 1,
-      fillOpacity: 0.8
-    }),
-    style: (feature) => ({
-      color: feature.properties?.stroke || "#3388ff",
-      fillColor: feature.properties?.fill || reefHealthColorFromState(),
-      weight: 2,
-      opacity: 1,
-      fillOpacity: 0.5
-    }),
-    onEachFeature: (feature, layer) => {
-      if (feature.geometry && feature.geometry.type !== "Point") {
-        const idx = dilemmaFeatures.indexOf(feature);
-        if (idx >= 0) featureLayers[idx] = layer;
+                // Popup Setup
+                const popupContent = `<strong>${props.name || ""}</strong><br>${props.dilemma || ""}<br><br><button onclick="openDilemmaPanel(${dilemmaIndex})">Take Action</button>`;
+                layer.bindPopup(popupContent);
 
-        const props = feature.properties || {};
-        const popup = `
-          <strong>${props.name || ""}</strong><br>
-          ${props.dilemma || ""}<br><br>
-          <button onclick="openDilemmaPanel(${idx})">Take Action</button>`;
-        layer.bindPopup(popup);
+                layer.on({
+                  mouseover: highlightFeature,
+                  mouseout: resetHighlight
+                });
+              } else {
+                // For point or geometry-less features, optionally bind popup or skip
+                if (feature.properties && feature.properties.name && feature.properties.choices) {
+                  // In case a dilemma feature had no geometry we can still allow opening its panel via some UI, but skip mapping to polygon.
+                  // (No polygon to color-change.)
+                }
+              }
+            }
+      }).addTo(OahuMap);
 
-        layer.on({
-          mouseover: (e)=> e.target.setStyle({weight:3,color:'#5578D8',fillOpacity:0.7}),
-          mouseout:  (e)=> geojson.resetStyle(e.target)
-        });
-      }
-    }
-  }).addTo(OahuMap);
+      // Make GEOJSON accessible
+      window._geojsonLayer = geojson;
 
-  // Expose for sidebar
-  window._geojsonLayer = geojson;
 });
 
-// Dilemma panel renderers (match partner bubble UI)
+// Highlight on polygon when hovered
+function highlightFeature(e) {
+      const layer = e.target;
+      layer.setStyle({
+            weight: 3,
+            color: '#5578D8',
+            fillOpacity: 0.7            
+      });
+}
+
+function resetHighlight(e) {
+  geojson.resetStyle(e.target);
+}
+
 let currentDilemmaIndex = null;
 
-function openDilemmaPanel(i){ showDilemmaPanel(i); }
-window.openDilemmaPanel = openDilemmaPanel;
-
-function showDilemmaPanel(i){
-  if (!(i >= 0 && i < dilemmaFeatures.length)){
-    const panel = document.getElementById('dilemma-panel');
-    panel.innerHTML = `<div class="bubble-content"><strong>No more dilemmas!</strong></div>`;
-    panel.style.display = 'block';
-    return;
-  }
-  currentDilemmaIndex = i;
-  const feature = dilemmaFeatures[i];
-  const props = feature.properties || {};
-
-  const panel = document.getElementById('dilemma-panel');
-  panel.innerHTML = `
-    <div class="decision-header">
-      <button class="close-btn" onclick="closeDilemmaPanel()">✕</button>
-      <h2>${props.name || ''}</h2>
-    </div>
-    <div class="choices">
-      ${(props.choices||[]).map((c,idx)=>`
-        <div class="choice-card">
-          <h3>${c.title || '[POLICY TITLE]'}</h3>
-          <p>${c.description || 'Policy Description'}</p>
-          <div class="impacts"><b>Reef:</b> ${c.displayReefHealth ?? (typeof c.reefImpact==='number'? ('+'+c.reefImpact+'%'):'+-')}
-            &nbsp;·&nbsp; <b>Fish:</b> ${c.displayFishPopulation ?? (typeof c.fishPopulationImpact==='number' ? ( (c.fishPopulationImpact>0?'+':'')+c.fishPopulationImpact+'%' ):'+-')}
-          </div>
-          <button class="authorize-btn" onclick="handleChoice(${idx})">Authorize</button>
-        </div>
-      `).join('')}
-    </div>`;
-  panel.style.display = 'block';
+// Dilemma Panel Logic
+function openDilemmaPanel(dilemmaIndex) {
+  // Alias used by popups (openDilemmaPanel) -> calls the show version so index bounds are validated
+  showDilemmaPanel(dilemmaIndex);
 }
-window.showDilemmaPanel = showDilemmaPanel;
 
-function showDilemmaSummary(i){
-  if (!(i >= 0 && i < dilemmaFeatures.length)){
+function showDilemmaPanel(dilemmaIndex) {
+  if (dilemmaIndex >= 0 && dilemmaIndex < dilemmaFeatures.length) {
+      currentDilemmaIndex = dilemmaIndex;
+      const feature = dilemmaFeatures[dilemmaIndex];
+      const props = feature.properties || {};
+    
+      // Panel HTML
+    const panel = document.getElementById('dilemma-panel');
+    panel.innerHTML = `
+      <div class="decision-header">
+        <button class="close-btn" onclick="closeDilemmaPanel()"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg></button>
+        <h2>${props.name || ''}</h2>
+       </div>
+       <div class="choices">
+        ${ (props.choices || []).map((choice, i) => `
+          <div class="choice-card">
+          <h3>${choice.title || `[POLICY TITLE]`}</h3>
+          <p>${choice.description || `Policy Description`}</p>
+          <button class="authorize-btn" onclick="handleChoice(${i})">Authorize</button>
+         </div>
+        `).join('')}
+       </div>
+    `;
+    panel.style.display = 'block';
+  } else {
+     // No more dilemmas
+    const panel = document.getElementById('dilemma-panel');
+    panel.innerHTML = `<div class="bubble-content"><strong>No more dilemmas!</strong></div>`;
+    panel.style.display = 'block';    
+  }
+ 
+}
+
+// Show a short summary for the given dilemma index (no choices shown)
+function showDilemmaSummary(dilemmaIndex) {
+  if (dilemmaIndex < 0 || dilemmaIndex >= dilemmaFeatures.length) {
     const panel = document.getElementById('dilemma-panel');
     panel.innerHTML = `<div class="bubble-content"><strong>No more dilemmas!</strong></div>`;
     panel.style.display = 'block';
     return;
   }
-  currentDilemmaIndex = i;
-  const feature = dilemmaFeatures[i];
+
+  currentDilemmaIndex = dilemmaIndex;
+  const feature = dilemmaFeatures[dilemmaIndex];
   const props = feature.properties || {};
+
+  // Short excerpt from the dilemma text (trim to e.g. 240 chars)
   const excerpt = props.dilemma ? (props.dilemma.length > 240 ? props.dilemma.substring(0,240) + '…' : props.dilemma) : '';
 
   const panel = document.getElementById('dilemma-panel');
@@ -232,100 +312,167 @@ function showDilemmaSummary(i){
     <div class="summary-body">
       <div class="summary-text">${excerpt}</div>
       <div style="margin-top:12px;">
-        <button onclick="showDilemmaPanel(${i})">View Options</button>
+        <button onclick="showDilemmaPanel(${dilemmaIndex})">View Options</button>
         <button onclick="handleChoice(0)" style="margin-left:8px;">Auto-Authorize First Option</button>
       </div>
-    </div>`;
+    </div>
+  `;
   panel.style.display = 'block';
 }
-window.showDilemmaSummary = showDilemmaSummary;
+window.showDilemmaSummary = showDilemmaSummary; // expose for onclick usage
 
-function closeDilemmaPanel(){
-  document.getElementById('dilemma-panel').style.display = 'none';
+// Use in popup setup
+window.openDilemmaPanel = openDilemmaPanel;
+window.showDilemmaPanel = showDilemmaPanel;
+
+// Format number percent -> "+35%" or "-10%"
+function formatPercentNumber(n) {
+  if (typeof n !== 'number' || isNaN(n)) return null;
+  const sign = n > 0 ? '+' : ''; // negative numbers include '-' automatically from n
+  return `${sign}${n}%`;
 }
-window.closeDilemmaPanel = closeDilemmaPanel;
 
-// Apply a choice → update state → recolor polygon → show report
-function handleChoice(choiceIndex){
-  const i = currentDilemmaIndex;
-  const feature = (i!=null) ? dilemmaFeatures[i] : null;
-  if(!feature) return;
-  const choice = feature.properties?.choices?.[choiceIndex];
-  if(!choice) return;
+// Compute fish display (supports fishPopulationImpactMin/Max OR fishImpactMin/Max OR single numeric fields)
+function computeFishDisplay(choice) {
+  // support both naming conventions: fishPopulationImpactMin/Max or fishImpactMin/Max
+  const minField = (typeof choice.fishPopulationImpactMin === 'number') ? choice.fishPopulationImpactMin
+                 : (typeof choice.fishImpactMin === 'number') ? choice.fishImpactMin
+                 : undefined;
+  const maxField = (typeof choice.fishPopulationImpactMax === 'number') ? choice.fishPopulationImpactMax
+                 : (typeof choice.fishImpactMax === 'number') ? choice.fishImpactMax
+                 : undefined;
 
-  if (Game.turns <= 0){
-    alert("No turns left");
-    return;
+  if (typeof minField === 'number' && typeof maxField === 'number' && minField !== maxField) {
+    const rangeStr = `${minField > 0 ? '+' : ''}${minField}-${maxField}%`;
+    const mid = Math.round(((minField + maxField) / 2) * 10) / 10; // one decimal
+    const midStr = `${mid > 0 ? '+' : ''}${mid}%`;
+    return { display: rangeStr, midpoint: midStr, midpointValue: mid };
   }
 
-  const reefObj = computeReefDisplay(choice);
-  const fishObj = computeFishDisplay(choice);
-  const reefDelta = (typeof reefObj.value === 'number') ? reefObj.value : 0;
-  const fishDelta = (typeof fishObj.midpointValue === 'number') ? fishObj.midpointValue : 0;
+  // single numeric value (check both names)
+  const single = (typeof choice.fishPopulationImpact === 'number') ? choice.fishPopulationImpact
+               : (typeof choice.fishImpact === 'number') ? choice.fishImpact
+               : (typeof choice.fishPopulationImpactMin === 'number' && typeof choice.fishPopulationImpactMax !== 'number') ? choice.fishPopulationImpactMin
+               : undefined;
 
-  Game.reefHealth = clamp(Game.reefHealth + reefDelta);
-  Game.fishPop    = clamp(Game.fishPop + fishDelta);
-  Game.turns--;
-
-  const layer = featureLayers[i];
-  if(layer){
-    const fill = reefHealthColorFromState();
-    layer.setStyle({ fillColor: fill, color: fill, fillOpacity: 0.6 });
-    feature.properties.fill = fill;
+  if (typeof single === 'number') {
+    return { display: formatPercentNumber(single), midpoint: formatPercentNumber(single), midpointValue: single };
   }
 
+  // fallback to preformatted display strings or older fields
+  if (choice.displayFishPopulation) return { display: choice.displayFishPopulation, midpoint: choice.displayFishPopulation, midpointValue: undefined };
+  if (choice.fishPopulation) return { display: String(choice.fishPopulation), midpoint: String(choice.fishPopulation), midpointValue: undefined };
+
+  return { display: "+-", midpoint: "+-", midpointValue: undefined };
+}
+
+function computeReefDisplay(choice) {
+  if (typeof choice.reefImpact === 'number') return { display: formatPercentNumber(choice.reefImpact), value: choice.reefImpact };
+  if (choice.displayReefHealth) return { display: choice.displayReefHealth, value: undefined };
+  if (choice.reefHealth) return { display: String(choice.reefHealth), value: undefined };
+  return { display: "+-", value: undefined };
+}
+
+// Updated handleChoice (uses computed display vars and computes an estimated percentage)
+function handleChoice(choiceIndex) {
+  const feature = dilemmaFeatures[currentDilemmaIndex];
+  if (!feature) return;
+  const choice = feature.properties && feature.properties.choices ? feature.properties.choices[choiceIndex] : null;
+  if (!choice) return;
+
+  // compute bias (your existing function returns -1..1)
+  const bias = effectiveness(choice);
+
+  // convert bias into integer score 1..10
+  let score = Math.round(((bias + 1) / 2) * 9 + 1);
+  score = Math.max(1, Math.min(10, score));
+
+  const outcome = reefHealthColorChange(score);
+
+  // update polygon color if present
+  const polyLayer = featureLayers[currentDilemmaIndex];
+  if (polyLayer) {
+    polyLayer.setStyle({
+      fillColor: outcome.color,
+      color: outcome.color,
+      fillOpacity: 0.6
+    });
+    if (feature.properties) feature.properties.fill = outcome.color;
+  }
+
+  // Build display strings
+  const reefObj = computeReefDisplay(choice);         // {display, value}
+  const fishObj = computeFishDisplay(choice);         // {display, midpoint, midpointValue}
+
+  // Compute an "Estimated percentage" based on numeric fields when available
+  // Use weights reefWeight = 0.7, fishWeight = 0.3 (tweak as desired)
+  let estimatedPercentDisplay = "+-";
+  const reefValue = (typeof reefObj.value === 'number') ? reefObj.value : undefined;           // e.g. 35
+  const fishMidValue = (typeof fishObj.midpointValue === 'number') ? fishObj.midpointValue : undefined; // e.g. 25
+  if (typeof reefValue === 'number' || typeof fishMidValue === 'number') {
+    const reefBias = (typeof reefValue === 'number') ? reefValue / 100 : 0;
+    const fishBias = (typeof fishMidValue === 'number') ? fishMidValue / 100 : 0;
+    const reefWeight = 0.7, fishWeight = 0.3;
+    const composite = (reefWeight * reefBias) + (fishWeight * fishBias);
+    const pct = Math.round(composite * 100 * 10) / 10; // one decimal
+    estimatedPercentDisplay = `${pct >= 0 ? '+' : ''}${pct}%`;
+  }
+
+  // Render panel using the computed variables (NOT choice.* properties)
   const panel = document.getElementById('dilemma-panel');
   panel.innerHTML = `
     <div class="dilemma-speech-pointer"></div>
     <div class="bubble-content">
       <div class="report-title"><strong>Ocean Report</strong></div>
-      <div class="decision-number"><em>DECISION ${i+1}</em></div>
+      <div class="decision-number"><em>DECISION ${currentDilemmaIndex + 1}</em></div>
       <div class="report-stats">
         Reef Impact: <span>${reefObj.display || "+-"}</span><br>
-        Fish Impact: <span>${fishObj.display || "+-"}</span><br>
-        New Reef Health: <b>${Game.reefHealth}/100</b><br>
-        New Fish Pop: <b>${Game.fishPop}/100</b><br>
-        Turns Left: <b>${Game.turns}</b>
+        Fish Impact: <span>${fishObj.display || "+-"}</span>
+        ${ (fishObj.midpoint && fishObj.midpoint !== fishObj.display) ? `<br>Estimated midpoint: ${fishObj.midpoint}` : '' }
+        <br>
+        Reef Health (raw): <span>${choice.displayReefHealth || choice.reefHealth || "+-"}</span><br>
+        Fish Population (raw): <span>${choice.displayFishPopulation || choice.fishPopulation || "+-"}</span>
       </div>
       <hr>
-      ${Game.turns>0 ? `
-        <button class="nxtDilemmaBtn" onclick="nextDilemma()">Next Dilemma</button>
-      ` : `
-        <div class="outcome" style="margin-top:12px;">
-          <strong>Round Complete</strong><br>
-          ${(Game.reefHealth>=75 && Game.fishPop>=70)
-            ? "🌊 Excellent stewardship — the reef thrives!"
-            : (Game.reefHealth>=55)
-              ? "🌱 Reef recovering — good effort."
-              : "⚠️ Reef stressed — stronger protections needed."}
-        </div>
-        <div style="margin-top:10px;display:flex;gap:8px">
-          <button onclick="resetGame()">Play Again</button>
-          <button onclick="closeDilemmaPanel()">Close</button>
-        </div>
-      `}
-    </div>`;
+      <div class="report-percentage">
+        Estimated Percentage: <span>${estimatedPercentDisplay}</span>
+      </div>
+      <div class="outcome" style="margin-top:12px;">
+        <strong>Outcome:</strong>
+        <span style="display:inline-block;width:12px;height:12px;background:${outcome.color};margin:0 8px 0 12px;vertical-align:middle;border-radius:2px;"></span>
+        <span>${outcome.label} (score: ${score})</span>
+      </div>
+      <button class="nxtDilemmaBtn" onclick="nextDilemma()">Next Dilemma</button>
+    </div>
+  `;
   panel.style.display = 'block';
 }
+
+
 window.handleChoice = handleChoice;
 
-function nextDilemma(){
-  const next = (currentDilemmaIndex==null) ? 0 : currentDilemmaIndex + 1;
-  if (next >= dilemmaFeatures.length){
+//
+function nextDilemma() {
+  // compute next index (if currentDilemmaIndex is not set, start at 0)
+  const next = (typeof currentDilemmaIndex === 'number') ? currentDilemmaIndex + 1 : 0;
+
+  // Debug log to confirm handler runs
+  console.log('nextDilemma called, current:', currentDilemmaIndex, 'next:', next);
+
+  if (next >= dilemmaFeatures.length) {
     const panel = document.getElementById('dilemma-panel');
     panel.innerHTML = `<div class="bubble-content"><strong>No more dilemmas!</strong></div>`;
     panel.style.display = 'block';
     return;
   }
+
+  // show short summary for the next dilemma (this will set currentDilemmaIndex)
   showDilemmaSummary(next);
 }
 window.nextDilemma = nextDilemma;
 
-function resetGame(){
-  Object.assign(Game,{ reefHealth:70, fishPop:65, turns:5, currentIndex:null });
-  closeDilemmaPanel();
-  featureLayers.forEach(l=>{
-    if(l) l.setStyle({ fillColor: reefHealthColorFromState(), color: reefHealthColorFromState(), fillOpacity: 0.5 });
-  });
+function closeDilemmaPanel() {
+  document.getElementById('dilemma-panel').style.display = 'none';
 }
-window.resetGame = resetGame;
+
+window.closeDilemmaPanel = closeDilemmaPanel;
