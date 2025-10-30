@@ -2,15 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Fishline Futures — Hawaiʻi Climate & Reef Simulator</title>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
+  <meta name="theme-color" content="#456492" />
+  <meta name="color-scheme" content="light only" />
+  <title>Fishline Futures — Hawaiʻi Reef Stewardship Simulator</title>
 
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <!-- Primary Styles (keep your partner’s path) -->
+  <link rel="stylesheet" href="./assets/style.css" />
 
-  <!-- Leaflet CSS -->
+  <!-- Leaflet -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -18,123 +21,109 @@
     crossorigin=""
   />
 
-  <!-- App CSS -->
-  <link rel="stylesheet" href="styles.css" />
+  <!-- Google Material Icons -->
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+  />
+
+  <!-- Favicons (optional; safe to keep or remove) -->
+  <link rel="icon" href="media/pfpEX.png" />
 </head>
 <body>
-  <div class="app">
-    <!-- Header -->
-    <header class="app-header">
-      <div class="brand">FISHLINE FUTURES</div>
-      <div class="subtitle">Sustainability · Kapu · Reef Stewardship</div>
-      <button class="tag" id="openAbout">About</button>
+  <!-- Sidebar -->
+  <aside class="sidebar" role="navigation" aria-label="Main">
+    <header class="sidebar-header">
+      <a href="#" class="avatar-logo" aria-label="Profile">
+        <img src="media/pfpEX.png" alt="avatar" class="profile-photo" />
+      </a>
+      <button
+        class="toggler sidebar-toggler"
+        type="button"
+        aria-label="Toggle sidebar"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true"
+          >chevron_left</span
+        >
+      </button>
     </header>
 
-    <!-- Landing -->
-    <section id="landing" class="screen active" aria-label="Landing">
-      <div class="landing-card">
-        <div>
-          <h1>Fishline Futures</h1>
-          <p>
-            An educational simulator blending <b>reef management</b>, <b>Hawaiian cultural stewardship</b>,
-            and <b>climate resilience</b>. Make up to five policy decisions and watch the reef respond.
-          </p>
-        </div>
-        <div class="landing-actions">
-          <button class="btn primary" id="startBtn">Start</button>
-          <button class="btn ghost" id="howBtn">How to Play</button>
-        </div>
-      </div>
-    </section>
+    <nav class="sidebar-nav">
+      <ul class="nav-list primary-nav">
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <span class="material-symbols-outlined" aria-hidden="true"
+              >id_card</span
+            >
+            <span class="nav-label">Profile</span>
+          </a>
+          <span class="nav-tooltip">Profile</span>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <span class="material-symbols-outlined" aria-hidden="true"
+              >analytics</span
+            >
+            <span class="nav-label">Player Stats</span>
+          </a>
+          <span class="nav-tooltip">Player Stats</span>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <span class="material-symbols-outlined" aria-hidden="true"
+              >surfing</span
+            >
+            <span class="nav-label">Reefs</span>
+          </a>
+          <span class="nav-tooltip">Reefs</span>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" id="openDex">
+            <span class="material-symbols-outlined" aria-hidden="true"
+              >book</span
+            >
+            <span class="nav-label">Encyclopedia</span>
+          </a>
+          <span class="nav-tooltip">Encyclopedia</span>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <span class="material-symbols-outlined" aria-hidden="true"
+              >settings</span
+            >
+            <span class="nav-label">Settings</span>
+          </a>
+          <span class="nav-tooltip">Settings</span>
+        </li>
+      </ul>
+      <ul class="nav-list secondary-nav"></ul>
+    </nav>
+  </aside>
 
-    <!-- Map / Simulator -->
-    <section id="map-screen" class="screen" aria-label="Map and Simulator">
-      <!-- Hover-expand rail (desktop) / bottom bar (mobile) -->
-      <aside class="rail" id="rail" data-collapsed="1" aria-label="Navigation">
-        <div class="rail-group">
-          <button id="navHome" class="rail-btn" data-tip="Home">
-            <span class="icon">🏠</span><span class="label">Home</span>
-          </button>
-          <button id="navPolicies" class="rail-btn" data-tip="Policies">
-            <span class="icon">⚖️</span><span class="label">Policies</span>
-          </button>
-          <button id="navDex" class="rail-btn" data-tip="Encyclopedia">
-            <span class="icon">📘</span><span class="label">Encyclopedia</span>
-          </button>
-          <button id="navSettings" class="rail-btn" data-tip="Settings">
-            <span class="icon">⚙️</span><span class="label">Settings</span>
-          </button>
-        </div>
-        <div class="rail-sep"></div>
-      </aside>
+  <!-- Map -->
+  <main id="main-map" aria-label="Hawaiʻi Reef Map"></main>
 
-      <!-- Map -->
-      <div id="map" aria-label="Hawaiʻi Reef Map"></div>
+  <!-- Decisions / Dilemma Panel (speech bubble UI) -->
+  <section id="dilemma-panel" aria-live="polite" aria-atomic="true"></section>
 
-      <!-- Right Status / Decisions Panel -->
-      <aside class="panel" aria-live="polite">
-        <h3>Reef Status — <span id="reefName">Hāʻena</span></h3>
-
-        <div class="stats">
-          <div class="stat">
-            <div class="label">Reef Health</div>
-            <div class="bar"><i id="reefBar" style="width:70%"></i></div>
-            <div id="reefVal" class="value">70 / 100</div>
-          </div>
-          <div class="stat">
-            <div class="label">Fish Population</div>
-            <div class="bar"><i id="fishBar" style="width:65%"></i></div>
-            <div id="fishVal" class="value">65 / 100</div>
-          </div>
-        </div>
-
-        <div id="decisions" class="decisions"></div>
-
-        <div class="panel-footer">
-          <div>Turns left: <b id="turnsLeft">5</b></div>
-          <button class="btn ghost" id="resetBtn">Reset</button>
-        </div>
-      </aside>
-    </section>
-
-    <!-- Story / Onboarding -->
-    <div class="modal" id="storyModal" role="dialog" aria-modal="true" aria-hidden="true">
-      <div class="card">
-        <div class="story">
-          <h3>(Story Setup)</h3>
-          <p>
-            You’re the <b>konohiki</b> of a reef under pressure from bleaching and overfishing.
-            Use <b>kapu</b> and policy to protect the ecosystem while supporting community needs.
-          </p>
-          <div class="actions">
-            <button class="btn ghost" id="skipStory">Skip</button>
-            <button class="btn primary" id="contStory">Continue</button>
-          </div>
-        </div>
-      </div>
+  <!-- No-JS fallback -->
+  <noscript>
+    <div style="padding:12px;background:#fff3cd;border:1px solid #ffeeba;margin:12px;border-radius:8px;">
+      This app requires JavaScript to run. Please enable JavaScript and reload.
     </div>
+  </noscript>
 
-    <!-- Species Encyclopedia Drawer -->
-    <div class="drawer" id="dex" aria-label="Species Encyclopedia">
-      <div class="drawer-head">
-        <h3>Species Encyclopedia</h3>
-        <button class="btn ghost" id="closeDex">Close</button>
-      </div>
-      <div id="dexList" class="dex-list"></div>
-    </div>
-
-    <!-- Toast -->
-    <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  </div>
-
-  <!-- Leaflet JS -->
+  <!-- Leaflet JS (load before our app scripts) -->
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
     crossorigin=""
   ></script>
 
-  <!-- App JS -->
-  <script src="script.js" defer></script>
+  <!-- Your partner’s small UI script (sidebar toggler, etc.) -->
+  <script src="./scripts/script.js" defer></script>
+
+  <!-- Final merged game/map logic (refined Oahu map + dilemmas + HUD + turns) -->
+  <script src="./scripts/OahuMap.js" defer></script>
 </body>
 </html>
