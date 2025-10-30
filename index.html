@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fishline Futures — Hawaiʻi Climate & Reef Simulator</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <div class="brand">FISHLINE FUTURES</div>
+      <div class="subtitle">Sustainability · Kapu · Reef Stewardship</div>
+      <button class="tag" id="openAbout" aria-label="About">About</button>
+    </header>
+
+    <!-- Landing -->
+    <section id="landing" class="screen active">
+      <div class="landing-card">
+        <div>
+          <h1>Fishline Futures</h1>
+          <p>
+            An educational simulator blending <b>reef management</b>, <b>Hawaiian cultural stewardship</b>, and
+            <b>climate resilience</b>. Make up to five policy decisions and watch reef health change in real time.
+          </p>
+        </div>
+        <div class="landing-actions">
+          <button class="btn primary" id="startBtn">Start</button>
+          <button class="btn ghost" id="howBtn">How to Play</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Map / Simulator -->
+    <section id="map-screen" class="screen" aria-label="Map and controls">
+      <aside class="rail" aria-label="Navigation rail">
+        <button title="Home" id="navHome" class="rail-btn" aria-label="Home">🏠</button>
+        <button title="Policies" id="navPolicies" class="rail-btn" aria-label="Policies">⚖️</button>
+        <button title="Encyclopedia" id="navDex" class="rail-btn" aria-label="Encyclopedia">📘</button>
+        <button title="Settings" id="navSettings" class="rail-btn" aria-label="Settings">⚙️</button>
+      </aside>
+
+      <div id="map" aria-label="Hawaiʻi map"></div>
+
+      <aside class="panel" aria-live="polite">
+        <h3>Reef Status — <span id="reefName">Hāʻena</span></h3>
+
+        <div class="stats">
+          <div class="stat">
+            <div class="label">Reef Health</div>
+            <div class="bar"><i id="reefBar" style="width:70%"></i></div>
+            <div id="reefVal" class="value">70 / 100</div>
+          </div>
+          <div class="stat">
+            <div class="label">Fish Population</div>
+            <div class="bar"><i id="fishBar" style="width:65%"></i></div>
+            <div id="fishVal" class="value">65 / 100</div>
+          </div>
+        </div>
+
+        <div class="decisions" id="decisions"></div>
+
+        <div class="panel-footer">
+          <div>Decisions left: <b id="turnsLeft">5</b></div>
+          <button class="btn ghost" id="resetBtn">Reset</button>
+        </div>
+      </aside>
+    </section>
+
+    <!-- Story / Onboarding -->
+    <div class="modal" id="storyModal" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="card">
+        <div class="story">
+          <h3>(Story Setup)</h3>
+          <p>
+            As a new <b>konohiki</b>, you steward a reef where bleaching events and overfishing have stressed the
+            ecosystem. Use <b>kapu</b> (situational restrictions) and policy to recover the reef while balancing
+            livelihoods.
+          </p>
+          <div class="actions">
+            <button class="btn ghost" id="skipStory">Skip</button>
+            <button class="btn primary" id="contStory">Continue</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Encyclopedia Drawer -->
+    <div class="drawer" id="dex" aria-label="Species encyclopedia">
+      <div class="drawer-head">
+        <h3>Species Encyclopedia</h3>
+        <button class="btn ghost" id="closeDex" aria-label="Close encyclopedia">Close</button>
+      </div>
+      <div id="dexList" class="dex-list"></div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <!-- App JS -->
+  <script src="app.js" defer></script>
+</body>
+</html>
