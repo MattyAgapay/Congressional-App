@@ -1,7 +1,8 @@
-// ===== Sidebar collapse / expand =====
+// === keep partner UI; just wire actions ===
+
+// Sidebar collapse / expand
 const sidebar = document.querySelector('.sidebar');
 const sidebarToggler = document.querySelector('.sidebar-toggler');
-
 if (sidebar && sidebarToggler) {
   sidebarToggler.addEventListener("click", () => {
     sidebar.classList.toggle("collapsed");
@@ -9,12 +10,27 @@ if (sidebar && sidebarToggler) {
   });
 }
 
-// Prevent default jumps for nav items with href="#"
+// Stop "#" links from jumping
 document.querySelectorAll('.nav-link[href="#"]').forEach(a => {
   a.addEventListener('click', e => e.preventDefault());
 });
 
-// Small toast helper (shared with OahuMap but safe if duplicated)
+// Reuse the existing dilemma bubble as a generic panel
+function openPanel(html) {
+  const panel = document.getElementById('dilemma-panel');
+  panel.innerHTML = `
+    <div class="dilemma-speech-pointer"></div>
+    <div class="bubble-content">${html}</div>
+  `;
+  panel.style.display = 'block';
+}
+function closePanel() {
+  const panel = document.getElementById('dilemma-panel');
+  panel.style.display = 'none';
+}
+window.closePanel = closePanel;
+
+// Small toast helper
 function toast(msg){
   let t = document.getElementById('ff-toast');
   if(!t){
@@ -30,22 +46,7 @@ function toast(msg){
   setTimeout(()=> t.style.opacity = 0, 1200);
 }
 
-// ===== Panel helpers (reuse the existing #dilemma-panel bubble) =====
-function openPanel(html){
-  const panel = document.getElementById('dilemma-panel');
-  panel.innerHTML = `
-    <div class="dilemma-speech-pointer"></div>
-    <div class="bubble-content">${html}</div>
-  `;
-  panel.style.display = 'block';
-}
-function closePanel(){
-  const panel = document.getElementById('dilemma-panel');
-  panel.style.display = 'none';
-}
-window.closePanel = closePanel;
-
-// ====== Nav actions ======
+// Panels for sidebar items (minimal, matches partner UI)
 function openProfilePanel(){
   openPanel(`
     <div class="decision-header">
@@ -57,7 +58,6 @@ function openProfilePanel(){
 }
 
 function openStatsPanel(){
-  // Pull from Game state if available
   const reef = (window.Game && typeof Game.reefHealth === 'number') ? Game.reefHealth : '—';
   const fish = (window.Game && typeof Game.fishPop === 'number') ? Game.fishPop : '—';
   const turns = (window.Game && typeof Game.turns === 'number') ? Game.turns : '—';
@@ -85,13 +85,11 @@ function colorDot(hex){
 }
 
 function openReefsPanel(){
-  // Need reef features & layers from OahuMap.js (already defined globally)
   if (!window.__FF_MAP || !window._geojsonLayer) {
     toast("Map is still loading…");
     return;
   }
 
-  // dilemmaFeatures comes from OahuMap.js; if missing, fallback to all features with properties
   const features = (window.dilemmaFeatures && dilemmaFeatures.length)
     ? dilemmaFeatures
     : (window.reefData ? reefData.features.filter(f => f.properties) : []);
@@ -124,7 +122,6 @@ function openReefsPanel(){
   `);
 }
 
-// Fly to reef bounds or center
 function flyToReef(idx){
   try{
     const layer = window.featureLayers?.[idx];
@@ -140,8 +137,6 @@ function flyToReef(idx){
     toast("Could not locate reef.");
   }
 }
-
-// Open the dilemma summary/panel for a given reef index
 function openReefDilemma(idx){
   closePanel();
   if (typeof window.showDilemmaSummary === 'function') {
@@ -153,48 +148,31 @@ function openReefDilemma(idx){
   }
 }
 
-// Temporary encyclopedia toast (clicking “Encyclopedia”)
-document.getElementById('openDex')?.addEventListener('click', (e) => {
-  e.preventDefault();
-  // Quick panel stub — swap to a real encyclopedia when ready
-  openPanel(`
-    <div class="decision-header">
-      <button class="close-btn" onclick="closePanel()">✕</button>
-      <h2>Encyclopedia</h2>
-    </div>
-    <p>Tap a reef and choose a policy. As you play, we’ll unlock entries for local species, kapu seasons, and stewardship concepts.</p>
-    <div style="margin-top:10px;">
-      <button onclick="closePanel()">Close</button>
-    </div>
-  `);
-});
-
-// ===== Wire up clicks by label text (no HTML changes needed) =====
+// Wire by visible label text (no HTML changes)
 document.querySelectorAll('.nav-link').forEach(link => {
   link.addEventListener('click', (e) => {
     const label = link.querySelector('.nav-label')?.textContent?.trim().toLowerCase();
     if (!label) return;
-
-    // All are "#" so prevent page jumps
     e.preventDefault();
 
-    if (label === 'profile') {
-      openProfilePanel();
-    } else if (label === 'player stats') {
-      openStatsPanel();
-    } else if (label === 'reefs') {
-      openReefsPanel();
-    } else if (label === 'settings') {
-      openPanel(`
+    if (label === 'profile')      openProfilePanel();
+    if (label === 'player stats') openStatsPanel();
+    if (label === 'reefs')        openReefsPanel();
+    if (label === 'encyclopedia') openPanel(`
+        <div class="decision-header">
+          <button class="close-btn" onclick="closePanel()">✕</button>
+          <h2>Encyclopedia</h2>
+        </div>
+        <p>Tap a reef and choose a policy. As you play, we’ll unlock entries for local species, kapu seasons, and stewardship concepts.</p>
+        <div style="margin-top:10px;"><button onclick="closePanel()">Close</button></div>
+      `);
+    if (label === 'settings')     openPanel(`
         <div class="decision-header">
           <button class="close-btn" onclick="closePanel()">✕</button>
           <h2>Settings</h2>
         </div>
         <p>Sounds, color-blind palette, and difficulty (coming soon).</p>
-        <div style="margin-top:10px;">
-          <button onclick="closePanel()">Close</button>
-        </div>
+        <div style="margin-top:10px;"><button onclick="closePanel()">Close</button></div>
       `);
-    }
   });
 });
