@@ -1,12 +1,12 @@
-/* ========== iOS 100vh FIX ========== */
+/* ===================== iOS 100vh Fix ===================== */
 function setVH(){
-  document.documentElement.style.setProperty('--app-vh', `${window.innerHeight * 0.01}px`);
+  document.documentElement.style.setProperty("--app-vh", `${window.innerHeight * 0.01}px`);
 }
 setVH();
-window.addEventListener('resize', setVH);
-window.addEventListener('orientationchange', setVH);
+window.addEventListener("resize", setVH);
+window.addEventListener("orientationchange", setVH);
 
-/* ========== STATE ========== */
+/* ===================== State ===================== */
 const state = {
   reefHealth: 70,
   fishPop: 65,
@@ -19,9 +19,9 @@ const state = {
   ]
 };
 
-const $ = (sel)=>document.querySelector(sel);
+const $ = sel => document.querySelector(sel);
 
-/* ========== TOAST ========== */
+/* ===================== Toast ===================== */
 function toast(msg){
   const t = $("#toast");
   t.textContent = msg;
@@ -29,49 +29,53 @@ function toast(msg){
   setTimeout(()=>t.classList.remove("show"),1500);
 }
 
-/* ========== NAVIGATION ========== */
+/* ===================== Screen Switching ===================== */
 function showScreen(id){
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
   $(id).classList.add("active");
-  setTimeout(()=>map && map.invalidateSize(),200);
+
+  setTimeout(()=> map && map.invalidateSize(), 200);
 }
 
-/* ========== UI EVENTS ========== */
+/* ===================== Start Flow ===================== */
 $("#startBtn").onclick = () => {
   showScreen("#map-screen");
   $("#storyModal").classList.add("open");
+  setTimeout(()=>map && map.invalidateSize(),200);
 };
 
-$("#howBtn").onclick = () =>
-  alert("Choose policies. Each affects reef & fish. You have 5 turns. Balance culture & sustainability!");
+$("#howBtn").onclick = () => alert("You have 5 turns to save the reef using kapu + sustainability decisions.");
 
-$("#openAbout").onclick = () =>
-  alert("Fishline Futures — A Hawaiʻi reef stewardship climate simulation game.");
+$("#openAbout").onclick = () => alert("Fishline Futures — Hawaiʻi reef stewardship simulator.");
 
+/* Story Close */
 $("#skipStory").onclick = () => {
   $("#storyModal").classList.remove("open");
-  setTimeout(()=>map.invalidateSize(),150);
+  setTimeout(()=>map && map.invalidateSize(),150);
 };
-
 $("#contStory").onclick = () => {
   $("#storyModal").classList.remove("open");
-  setTimeout(()=>map.invalidateSize(),150);
+  setTimeout(()=>map && map.invalidateSize(),150);
 };
 
+/* NAV Buttons */
 $("#navHome").onclick = () => showScreen("#landing");
-$("#navPolicies").onclick = () => toast("Policies visible in right panel.");
+$("#navPolicies").onclick = () => toast("Policies are in the right panel.");
 $("#navDex").onclick = () => $("#dex").classList.add("open");
 $("#closeDex").onclick = () => $("#dex").classList.remove("open");
-$("#navSettings").onclick = () => toast("Settings coming soon!");
+$("#navSettings").onclick = () => toast("Settings coming soon! ⚙️");
 
-/* ========== RESET GAME ========== */
+/* ===================== Reset Game ===================== */
 $("#resetBtn").onclick = resetGame;
 function resetGame(){
   Object.assign(state,{ reefHealth:70, fishPop:65, turns:5 });
-  updateHUD(); drawZones(); renderCards();
+  updateHUD();
+  drawZones();
+  renderCards();
+  toast("Game reset");
 }
 
-/* ========== HUD UPDATE ========== */
+/* ===================== HUD Update ===================== */
 function updateHUD(){
   $("#reefBar").style.width = `${state.reefHealth}%`;
   $("#fishBar").style.width = `${state.fishPop}%`;
@@ -81,12 +85,12 @@ function updateHUD(){
   $("#reefName").textContent = state.reefName;
 }
 
-/* ========== MAP SETUP ========== */
+/* ===================== Map ===================== */
 let map, zones;
 
 function initMap(){
   map = L.map("map",{ zoomControl:false }).setView([21.57,-158],9);
-  
+
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
     maxZoom:18, attribution:"© OpenStreetMap"
   }).addTo(map);
@@ -94,27 +98,30 @@ function initMap(){
   L.control.zoom({position:"topright"}).addTo(map);
 
   drawZones();
-  setTimeout(()=>map.invalidateSize(),400);
+  setTimeout(()=>map.invalidateSize(),300);
 }
 
 function zoneColor(){
-  return state.reefHealth>=75? "#2ecc71":
-         state.reefHealth>=50? "#f1c40f":"#e74c3c";
+  return state.reefHealth>=75 ? "#2ecc71" :
+         state.reefHealth>=50 ? "#f1c40f" : "#e74c3c";
 }
 
 function drawZones(){
   if(zones) zones.remove();
-  
+
   const reefs = {
     type:"FeatureCollection",
     features:[
-      { type:"Feature", properties:{name:"Hāʻena Reef"}, geometry:{ type:"Polygon", coordinates:[[[-158.08,21.69],[-158.02,21.69],[-158.02,21.64],[-158.08,21.64]]] } },
-      { type:"Feature", properties:{name:"Māʻili Reef"}, geometry:{ type:"Polygon", coordinates:[[[-158.25,21.44],[-158.19,21.44],[-158.19,21.39],[-158.25,21.39]]] } },
-      { type:"Feature", properties:{name:"Kailua Reef"}, geometry:{ type:"Polygon", coordinates:[[[-157.76,21.43],[-157.70,21.43],[-157.70,21.39],[-157.76,21.39]]] } }
+      { type:"Feature", properties:{name:"Hāʻena Reef"},
+        geometry:{ type:"Polygon", coordinates:[[[-158.08,21.69],[-158.02,21.69],[-158.02,21.64],[-158.08,21.64]]] } },
+      { type:"Feature", properties:{name:"Māʻili Reef"},
+        geometry:{ type:"Polygon", coordinates:[[[-158.25,21.44],[-158.19,21.44],[-158.19,21.39],[-158.25,21.39]]] } },
+      { type:"Feature", properties:{name:"Kailua Reef"},
+        geometry:{ type:"Polygon", coordinates:[[[-157.76,21.43],[-157.70,21.43],[-157.70,21.39],[-157.76,21.39]]] } }
     ]
   };
 
-  zones = L.geoJSON(reefs,{
+  zones = L.geoJSON(reefs, {
     style:()=>({
       color:"#111",
       weight:1,
@@ -132,17 +139,17 @@ function drawZones(){
   }).addTo(map);
 }
 
-/* ========== POLICY CARDS ========== */
+/* ===================== Policy Cards ===================== */
 const cards = [
-  { title:"Seasonal Kapu",           body:"Protect manini & uhu",            good:{reef:8,  fish:6},  bad:{reef:-4, fish:-2} },
-  { title:"Ban Lay Nets",            body:"Reduce juvenile catch",           good:{reef:6,  fish:7},  bad:{reef:-3, fish:-4} },
-  { title:"Tourism Briefings",       body:"Coral-safe snorkeling",           good:{reef:5,  fish:2},  bad:{reef:-2, fish:-1} },
-  { title:"Invasive Algae Control",  body:"Plant urchins",                   good:{reef:9,  fish:4},  bad:{reef:-5, fish:-2} },
-  { title:"Bleaching Response",      body:"Full kapu during heat events",    good:{reef:10, fish:6},  bad:{reef:-6, fish:-5} },
-  { title:"Spearfishing Derby",      body:"Boost catch, risk brood stock",  good:{reef:-6, fish:-10}, bad:{reef:+2, fish:+1} }
+  { title:"Seasonal Kapu",           body:"Protect manini & uhu",          good:{reef:8, fish:6},   bad:{reef:-4, fish:-2} },
+  { title:"Ban Lay Nets",            body:"Protect juveniles",             good:{reef:6, fish:7},   bad:{reef:-3, fish:-4} },
+  { title:"Tourism Education",       body:"Coral-safe snorkeling",         good:{reef:5, fish:2},   bad:{reef:-2, fish:-1} },
+  { title:"Invasive Algae Control",  body:"Plant urchins",                 good:{reef:9, fish:4},   bad:{reef:-5, fish:-2} },
+  { title:"Bleaching Closure",       body:"Full kapu during heatwaves",    good:{reef:10, fish:6},  bad:{reef:-6, fish:-5} },
+  { title:"Spearfish Derby",         body:"Short gain, long loss",         good:{reef:-6, fish:-10},bad:{reef:+2, fish:+1} },
 ];
 
-function clamp(n){ return Math.max(0,Math.min(100,n)); }
+function clamp(n){ return Math.max(0, Math.min(100,n)); }
 
 function apply(effect,msg){
   if(state.turns<=0){ toast("No turns left"); return; }
@@ -155,13 +162,14 @@ function apply(effect,msg){
   updateHUD();
   drawZones();
 
-  state.turns===0 ? end() : renderCards();
+  if(state.turns===0) return end();
+  renderCards();
 }
 
 function renderCards(){
   const box = $("#decisions");
   box.innerHTML = "";
-  
+
   [...cards].sort(()=>Math.random()-0.5).slice(0,3).forEach(c=>{
     const el = document.createElement("div");
     el.className = "card";
@@ -174,40 +182,38 @@ function renderCards(){
       </div>
     `;
     const [yes,no] = el.querySelectorAll("button");
-    yes.onclick = ()=>apply(c.good,`✅ Kapu applied: ${c.title}`);
+    yes.onclick = ()=>apply(c.good,`✅ Kapu Applied: ${c.title}`);
     no.onclick  = ()=>apply(c.bad, `❌ Ignored: ${c.title}`);
+
     box.appendChild(el);
   });
 }
 
-/* ========== END GAME ========== */
+/* ===================== End Game ===================== */
 function end(){
-  let msg = (state.reefHealth>=75 && state.fishPop>=70)
-    ? "🌱 Excellent stewardship — the reef thrives!"
-    : (state.reefHealth>=55)
-      ? "Mixed outcome — reef recovering"
-      : "⚠️ Reef stressed — stricter kapu needed next round";
+  let msg =
+    state.reefHealth>=75 && state.fishPop>=70 ? "🌊 Excellent stewardship — the reef thrives!" :
+    state.reefHealth>=55 ? "🌱 Reef recovering — good effort!" :
+    "⚠️ Reef stressed — stronger protections needed.";
 
   alert(msg);
 }
 
-/* ========== ENCYCLOPEDIA ========== */
+/* ===================== Encyclopedia ===================== */
 function renderDex(){
-  const wrap = $("#dexList");
-  wrap.innerHTML = "";
+  const box = $("#dexList");
+  box.innerHTML = "";
 
-  // big explore card
-  const exp = document.createElement("div");
-  exp.className="dex-explore";
-  exp.innerHTML = `
+  const hero = document.createElement("div");
+  hero.className = "dex-explore";
+  hero.innerHTML = `
     <div class="big"></div>
     <div class="meta">
       <div style="font-weight:700;font-size:14px;margin-bottom:6px">EXPLORE</div>
       <button class="btn ghost">[FISH NAME]</button>
     </div>`;
-  wrap.appendChild(exp);
+  box.appendChild(hero);
 
-  // species list
   state.species.forEach(s=>{
     const el = document.createElement("div");
     el.className = "card";
@@ -215,12 +221,12 @@ function renderDex(){
       <div style="font-weight:700">${s.name}</div>
       <div class="body">${s.note}</div>
       <div class="bar" style="margin-top:6px"><i style="width:${s.pop}%"></i></div>`;
-    wrap.appendChild(el);
+    box.appendChild(el);
   });
 }
 
-/* ========== SIDEBAR BEHAVIOR ========== */
-const rail = document.getElementById("rail");
+/* ===================== Sidebar Hover Map Resize ===================== */
+const rail = $("#rail");
 rail.addEventListener("mouseenter",()=>{
   rail.dataset.collapsed="0";
   setTimeout(()=>map && map.invalidateSize(),180);
@@ -230,7 +236,7 @@ rail.addEventListener("mouseleave",()=>{
   setTimeout(()=>map && map.invalidateSize(),180);
 });
 
-/* ========== INIT ========== */
+/* ===================== Init ===================== */
 updateHUD();
 renderCards();
 renderDex();
