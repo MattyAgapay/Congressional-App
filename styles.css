@@ -313,3 +313,51 @@ body {
 hr {
 
 }
+
+/* ==== Smooth panel + UI transitions (add to end) ==== */
+
+/* Panel starts hidden but ready to animate */
+#dilemma-panel {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .22s ease, transform .22s ease;
+  will-change: opacity, transform;
+  pointer-events: none; /* avoid clicks before fully shown */
+}
+
+/* When we show it via JS */
+#dilemma-panel.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* Slight hover lift on choice cards for polish */
+.choice-card {
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.choice-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 3px 3px 12px #675A51c0;
+}
+
+/* Buttons feel responsive */
+button, .authorize-btn, .nxtDilemmaBtn {
+  transition: transform .06s ease, filter .2s ease, background .2s ease;
+}
+button:active, .authorize-btn:active, .nxtDilemmaBtn:active {
+  transform: translateY(1px);
+}
+
+/* Sidebar labels fade when collapsing (you already change layout; this smooths opacity) */
+.sidebar .nav-label {
+  transition: opacity .2s ease;
+}
+.sidebar.collapsed .nav-label {
+  opacity: 0;
+}
+
+/* Tooltip fade-in */
+.sidebar .nav-item:hover .nav-tooltip {
+  transition: opacity .15s ease, transform .15s ease;
+}
