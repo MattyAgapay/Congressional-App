@@ -1,17 +1,17 @@
 /* ==== keep partner visuals; fix bugs & wire gameplay ==== */
 
-// iPhone 100vh fix (doesn't change UI; just correct height)
+// iPhone 100vh fix
 function setVH(){ document.documentElement.style.setProperty('--app-vh', `${window.innerHeight * 0.01}px`); }
 setVH();
 addEventListener('resize', setVH);
 addEventListener('orientationchange', setVH);
 
-// Simple game state (no HUD box; stats show via sidebar "Player Stats")
+// Simple game state (stats shown via sidebar "Player Stats")
 const Game = { reefHealth: 70, fishPop: 65, turns: 5, currentIndex: null };
 function clamp(n){ return Math.max(0, Math.min(100, n)); }
 window.Game = Game; // expose for stats panel
 
-// Reef data (partner content, unchanged except color hex fixes)
+// Reef data (partner content)
 const reefData = {
   "type": "FeatureCollection",
   "features": [
@@ -254,7 +254,6 @@ function handleChoice(choiceIndex){
   if(!choice) return;
 
   if (Game.turns <= 0){
-    // keep UI; minimal feedback
     alert("No turns left");
     return;
   }
