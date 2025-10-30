@@ -1,62 +1,17 @@
-/* ====================== iPhone safe 100vh ====================== */
+/* ==== keep partner visuals; fix bugs & wire gameplay ==== */
+
+// iPhone 100vh fix (doesn't change UI; just correct height)
 function setVH(){ document.documentElement.style.setProperty('--app-vh', `${window.innerHeight * 0.01}px`); }
 setVH();
 addEventListener('resize', setVH);
 addEventListener('orientationchange', setVH);
 
-/* ====================== Game State ====================== */
-const Game = {
-  reefHealth: 70,
-  fishPop: 65,
-  turns: 5,
-  currentIndex: null
-};
+// Simple game state (no HUD box; stats show via sidebar "Player Stats")
+const Game = { reefHealth: 70, fishPop: 65, turns: 5, currentIndex: null };
 function clamp(n){ return Math.max(0, Math.min(100, n)); }
+window.Game = Game; // expose for stats panel
 
-/* ====================== Toast (lightweight) ====================== */
-function toast(msg){
-  let t = document.getElementById('ff-toast');
-  if(!t){
-    t = document.createElement('div');
-    t.id = 'ff-toast';
-    t.style.cssText = `
-      position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
-      background:#111;color:#fff;border-radius:999px;padding:8px 12px;
-      opacity:0;transition:.2s;z-index:9999;font:600 13px/1 Inter,system-ui,sans-serif;`;
-    document.body.appendChild(t);
-  }
-  t.textContent = msg; t.style.opacity = 1;
-  setTimeout(()=> t.style.opacity = 0, 1200);
-}
-
-/* ====================== HUD (Leaflet control) ====================== */
-let hudCtrl;
-function ensureHUD(){
-  if(hudCtrl) return hudCtrl;
-  hudCtrl = L.control({position:'topleft'});
-  hudCtrl.onAdd = function(){
-    const div = L.DomUtil.create('div','ff-hud');
-    div.style.cssText = `
-      background:#fff;border:2px solid #A3A9A2;border-radius:12px;
-      box-shadow:0 6px 18px rgba(0,0,0,.15);padding:8px 10px;
-      font:600 12px/1.2 Inter,system-ui,sans-serif;`;
-    div.innerHTML = `
-      <div>Reef Health: <span id="ff-reef-val">${Game.reefHealth}</span></div>
-      <div>Fish Pop: <span id="ff-fish-val">${Game.fishPop}</span></div>
-      <div>Turns: <span id="ff-turns">${Game.turns}</span></div>`;
-    L.DomEvent.disableClickPropagation(div);
-    return div;
-  };
-  hudCtrl.addTo(OahuMap);
-  return hudCtrl;
-}
-function updateHUD(){
-  document.getElementById('ff-reef-val').textContent = Game.reefHealth;
-  document.getElementById('ff-fish-val').textContent = Game.fishPop;
-  document.getElementById('ff-turns').textContent   = Game.turns;
-}
-
-/* ====================== Reef Data (merged with your partner’s) ====================== */
+// Reef data (partner content, unchanged except color hex fixes)
 const reefData = {
   "type": "FeatureCollection",
   "features": [
@@ -125,12 +80,17 @@ const reefData = {
 let OahuMap, geojson;
 const dilemmaFeatures = reefData.features.filter(f => f.properties && f.properties.choices);
 const featureLayers = [];
+window.dilemmaFeatures = dilemmaFeatures;
+window.featureLayers = featureLayers;
+window.reefData = reefData;
 
-/* ====================== Helpers ====================== */
+// Color from state (for polygon feedback)
 function reefHealthColorFromState(){
   const h = Game.reefHealth;
   return h >= 75 ? "#2ECC71" : h >= 50 ? "#F1C40F" : "#E74C3C";
 }
+
+// Helpers to read choice impact
 function formatPercentNumber(n){
   if (typeof n !== 'number' || isNaN(n)) return null;
   const sign = n > 0 ? '+' : '';
@@ -138,11 +98,9 @@ function formatPercentNumber(n){
 }
 function computeFishDisplay(choice){
   const min = (typeof choice.fishPopulationImpactMin === 'number') ? choice.fishPopulationImpactMin
-           : (typeof choice.fishImpactMin === 'number') ? choice.fishImpactMin
-           : undefined;
+           : (typeof choice.fishImpactMin === 'number') ? choice.fishImpactMin : undefined;
   const max = (typeof choice.fishPopulationImpactMax === 'number') ? choice.fishPopulationImpactMax
-           : (typeof choice.fishImpactMax === 'number') ? choice.fishImpactMax
-           : undefined;
+           : (typeof choice.fishImpactMax === 'number') ? choice.fishImpactMax : undefined;
   if (typeof min === 'number' && typeof max === 'number' && min !== max){
     const mid = Math.round(((min + max)/2)*10)/10;
     const rangeStr = `${min>0?'+':''}${min}-${max}%`;
@@ -164,18 +122,15 @@ function computeReefDisplay(choice){
   return { display: "+-", value: undefined };
 }
 
-/* ====================== Map Init ====================== */
-document.addEventListener("DOMContentLoaded", function(){
-  // Initialize map at a valid zoom (avoid blank tiles)
-  OahuMap = L.map('main-map').setView([21.270435, -157.733683], 13);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+// Map init (KEEP partner look; fix zoom bug)
+document.addEventListener("DOMContentLoaded", function () {
+  OahuMap = L.map('main-map').setView([21.270435, -157.733683], 13); // 13 avoids blank tiles
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '© OpenStreetMap'
   }).addTo(OahuMap);
   L.control.zoom({position:'topright'}).addTo(OahuMap);
   window.__FF_MAP = OahuMap;
-
-  ensureHUD(); updateHUD();
 
   geojson = L.geoJSON(reefData, {
     pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
@@ -194,7 +149,6 @@ document.addEventListener("DOMContentLoaded", function(){
       fillOpacity: 0.5
     }),
     onEachFeature: (feature, layer) => {
-      // store polygon layers that have dilemmas
       if (feature.geometry && feature.geometry.type !== "Point") {
         const idx = dilemmaFeatures.indexOf(feature);
         if (idx >= 0) featureLayers[idx] = layer;
@@ -213,9 +167,14 @@ document.addEventListener("DOMContentLoaded", function(){
       }
     }
   }).addTo(OahuMap);
+
+  // Expose for sidebar
+  window._geojsonLayer = geojson;
 });
 
-/* ====================== Dilemma Panel ====================== */
+// Dilemma panel renderers (match partner bubble UI)
+let currentDilemmaIndex = null;
+
 function openDilemmaPanel(i){ showDilemmaPanel(i); }
 window.openDilemmaPanel = openDilemmaPanel;
 
@@ -226,32 +185,27 @@ function showDilemmaPanel(i){
     panel.style.display = 'block';
     return;
   }
-  Game.currentIndex = i;
+  currentDilemmaIndex = i;
   const feature = dilemmaFeatures[i];
   const props = feature.properties || {};
 
   const panel = document.getElementById('dilemma-panel');
   panel.innerHTML = `
-    <div class="dilemma-speech-pointer"></div>
-    <div class="bubble-content">
-      <div class="decision-header">
-        <button class="close-btn" onclick="closeDilemmaPanel()">
-          <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="#5b5b5b"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
-        </button>
-        <h2>${props.name || ''}</h2>
-      </div>
-      <div class="choices">
-        ${(props.choices||[]).map((c,idx)=>`
-          <div class="choice-card">
-            <h3>${c.title || '[POLICY TITLE]'}</h3>
-            <p>${c.description || 'Policy Description'}</p>
-            <div class="impacts"><b>Reef:</b> ${c.displayReefHealth ?? (typeof c.reefImpact==='number'? ('+'+c.reefImpact+'%'):'+-')}
-              &nbsp;·&nbsp; <b>Fish:</b> ${c.displayFishPopulation ?? (typeof c.fishPopulationImpact==='number' ? ( (c.fishPopulationImpact>0?'+':'')+c.fishPopulationImpact+'%' ):'+-')}
-            </div>
-            <button class="authorize-btn" onclick="handleChoice(${idx})">Authorize</button>
+    <div class="decision-header">
+      <button class="close-btn" onclick="closeDilemmaPanel()">✕</button>
+      <h2>${props.name || ''}</h2>
+    </div>
+    <div class="choices">
+      ${(props.choices||[]).map((c,idx)=>`
+        <div class="choice-card">
+          <h3>${c.title || '[POLICY TITLE]'}</h3>
+          <p>${c.description || 'Policy Description'}</p>
+          <div class="impacts"><b>Reef:</b> ${c.displayReefHealth ?? (typeof c.reefImpact==='number'? ('+'+c.reefImpact+'%'):'+-')}
+            &nbsp;·&nbsp; <b>Fish:</b> ${c.displayFishPopulation ?? (typeof c.fishPopulationImpact==='number' ? ( (c.fishPopulationImpact>0?'+':'')+c.fishPopulationImpact+'%' ):'+-')}
           </div>
-        `).join('')}
-      </div>
+          <button class="authorize-btn" onclick="handleChoice(${idx})">Authorize</button>
+        </div>
+      `).join('')}
     </div>`;
   panel.style.display = 'block';
 }
@@ -264,25 +218,22 @@ function showDilemmaSummary(i){
     panel.style.display = 'block';
     return;
   }
-  Game.currentIndex = i;
+  currentDilemmaIndex = i;
   const feature = dilemmaFeatures[i];
   const props = feature.properties || {};
   const excerpt = props.dilemma ? (props.dilemma.length > 240 ? props.dilemma.substring(0,240) + '…' : props.dilemma) : '';
 
   const panel = document.getElementById('dilemma-panel');
   panel.innerHTML = `
-    <div class="dilemma-speech-pointer"></div>
-    <div class="bubble-content">
-      <div class="decision-header">
-        <button class="close-btn" onclick="closeDilemmaPanel()">✕</button>
-        <h2>${props.name || ''}</h2>
-      </div>
-      <div class="summary-body">
-        <div class="summary-text">${excerpt}</div>
-        <div style="margin-top:12px;">
-          <button onclick="showDilemmaPanel(${i})">View Options</button>
-          <button onclick="handleChoice(0)" style="margin-left:8px;">Auto-Authorize First Option</button>
-        </div>
+    <div class="decision-header">
+      <button class="close-btn" onclick="closeDilemmaPanel()">✕</button>
+      <h2>${props.name || ''}</h2>
+    </div>
+    <div class="summary-body">
+      <div class="summary-text">${excerpt}</div>
+      <div style="margin-top:12px;">
+        <button onclick="showDilemmaPanel(${i})">View Options</button>
+        <button onclick="handleChoice(0)" style="margin-left:8px;">Auto-Authorize First Option</button>
       </div>
     </div>`;
   panel.style.display = 'block';
@@ -294,30 +245,29 @@ function closeDilemmaPanel(){
 }
 window.closeDilemmaPanel = closeDilemmaPanel;
 
-/* ====================== Choice Handling ====================== */
+// Apply a choice → update state → recolor polygon → show report
 function handleChoice(choiceIndex){
-  const i = Game.currentIndex;
+  const i = currentDilemmaIndex;
   const feature = (i!=null) ? dilemmaFeatures[i] : null;
   if(!feature) return;
   const choice = feature.properties?.choices?.[choiceIndex];
   if(!choice) return;
 
-  if (Game.turns <= 0){ toast("No turns left"); return; }
+  if (Game.turns <= 0){
+    // keep UI; minimal feedback
+    alert("No turns left");
+    return;
+  }
 
-  // Use numeric fields if present
-  const reefObj = computeReefDisplay(choice);       // {display, value}
-  const fishObj = computeFishDisplay(choice);       // {display, midpointValue}
+  const reefObj = computeReefDisplay(choice);
+  const fishObj = computeFishDisplay(choice);
   const reefDelta = (typeof reefObj.value === 'number') ? reefObj.value : 0;
   const fishDelta = (typeof fishObj.midpointValue === 'number') ? fishObj.midpointValue : 0;
 
-  // Apply effect to state
   Game.reefHealth = clamp(Game.reefHealth + reefDelta);
   Game.fishPop    = clamp(Game.fishPop + fishDelta);
   Game.turns--;
 
-  updateHUD();
-
-  // Color the polygon for this dilemma based on **current** reefHealth
   const layer = featureLayers[i];
   if(layer){
     const fill = reefHealthColorFromState();
@@ -325,7 +275,6 @@ function handleChoice(choiceIndex){
     feature.properties.fill = fill;
   }
 
-  // Build “Ocean Report”
   const panel = document.getElementById('dilemma-panel');
   panel.innerHTML = `
     <div class="dilemma-speech-pointer"></div>
@@ -345,7 +294,11 @@ function handleChoice(choiceIndex){
       ` : `
         <div class="outcome" style="margin-top:12px;">
           <strong>Round Complete</strong><br>
-          ${finalVerdict()}
+          ${(Game.reefHealth>=75 && Game.fishPop>=70)
+            ? "🌊 Excellent stewardship — the reef thrives!"
+            : (Game.reefHealth>=55)
+              ? "🌱 Reef recovering — good effort."
+              : "⚠️ Reef stressed — stronger protections needed."}
         </div>
         <div style="margin-top:10px;display:flex;gap:8px">
           <button onclick="resetGame()">Play Again</button>
@@ -357,9 +310,8 @@ function handleChoice(choiceIndex){
 }
 window.handleChoice = handleChoice;
 
-/* ====================== Flow Helpers ====================== */
 function nextDilemma(){
-  const next = (Game.currentIndex==null) ? 0 : Game.currentIndex + 1;
+  const next = (currentDilemmaIndex==null) ? 0 : currentDilemmaIndex + 1;
   if (next >= dilemmaFeatures.length){
     const panel = document.getElementById('dilemma-panel');
     panel.innerHTML = `<div class="bubble-content"><strong>No more dilemmas!</strong></div>`;
@@ -370,19 +322,9 @@ function nextDilemma(){
 }
 window.nextDilemma = nextDilemma;
 
-function finalVerdict(){
-  return (Game.reefHealth>=75 && Game.fishPop>=70)
-    ? "🌊 Excellent stewardship — the reef thrives!"
-    : (Game.reefHealth>=55)
-      ? "🌱 Reef recovering — good effort."
-      : "⚠️ Reef stressed — stronger protections needed.";
-}
 function resetGame(){
   Object.assign(Game,{ reefHealth:70, fishPop:65, turns:5, currentIndex:null });
-  updateHUD();
-  toast("Game reset");
   closeDilemmaPanel();
-  // recolor polygons to match reset state
   featureLayers.forEach(l=>{
     if(l) l.setStyle({ fillColor: reefHealthColorFromState(), color: reefHealthColorFromState(), fillOpacity: 0.5 });
   });
