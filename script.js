@@ -1,3 +1,11 @@
+// ===== iOS 100vh fix: set CSS var to innerHeight =====
+function setVH(){
+  document.documentElement.style.setProperty('--app-vh', `${window.innerHeight * 0.01}px`);
+}
+setVH();
+window.addEventListener('resize', setVH);
+window.addEventListener('orientationchange', setVH);
+
 // ===== State =====
 const state = {
   reefHealth: 70,
@@ -6,7 +14,7 @@ const state = {
   reefName: "Hāʻena",
   species: [
     { name: "Manini (Convict Tang)", status: "stable", pop: 72, note: "Controls algae growth." },
-    { name: "U'u (Menpachi)", status: "pressured", pop: 48, note: "Nocturnal reef fish." },
+    { name: "U'u (Menpachi)",        status: "pressured", pop: 48, note: "Nocturnal reef fish." },
     { name: "Ulua (Giant Trevally)", status: "declining", pop: 33, note: "Top predator; important culturally." }
   ]
 };
@@ -21,20 +29,21 @@ function toast(x){
 function showScreen(id){
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
   $(id).classList.add("active");
+  // give Leaflet a moment then resize map for new layout
+  setTimeout(()=>{ if(map) { map.invalidateSize(); } }, 150);
 }
 
 // ===== Buttons =====
 $("#startBtn").onclick = () => { showScreen("#map-screen"); $("#storyModal").classList.add("open"); };
-$("#howBtn").onclick = () => alert("You have 5 turns to protect the reef using cultural & science-based decisions.");
-$("#openAbout").onclick = () => alert("Built for Hawaiʻi Congressional App Challenge.");
+$("#howBtn").onclick   = () => alert("You have 5 turns to protect the reef using cultural & science-based decisions.");
+$("#openAbout").onclick= () => alert("Built for Hawaiʻi Congressional App Challenge.");
+$("#skipStory").onclick= () => { $("#storyModal").classList.remove("open"); setTimeout(()=>map && map.invalidateSize(),150); };
+$("#contStory").onclick= () => { $("#storyModal").classList.remove("open"); setTimeout(()=>map && map.invalidateSize(),150); };
 
-$("#skipStory").onclick = () => $("#storyModal").classList.remove("open");
-$("#contStory").onclick = () => $("#storyModal").classList.remove("open");
-
-$("#navHome").onclick = () => showScreen("#landing");
+$("#navHome").onclick     = () => showScreen("#landing");
 $("#navPolicies").onclick = () => toast("Policy cards on the right.");
-$("#navDex").onclick = () => $("#dex").classList.add("open");
-$("#closeDex").onclick = () => $("#dex").classList.remove("open");
+$("#navDex").onclick      = () => { $("#dex").classList.add("open"); }
+$("#closeDex").onclick    = () => { $("#dex").classList.remove("open"); }
 $("#navSettings").onclick = () => toast("Settings coming soon! 🎛️");
 
 $("#resetBtn").onclick = () => {
@@ -56,9 +65,12 @@ function updateHUD(){
 let map, zones;
 function initMap(){
   map = L.map("map",{ zoomControl:false }).setView([21.565,-158],9);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:18, attribution:"© OpenStreetMap"}).addTo(map);
   L.control.zoom({position:"topright"}).addTo(map);
   drawZones();
+
+  // iOS Safari sometimes needs a second resize after fonts load
+  setTimeout(()=>map.invalidateSize(), 400);
 }
 
 function zoneColor(){
@@ -97,12 +109,12 @@ function drawZones(){
 
 // ===== Policies =====
 const cards = [
-  { title:"Seasonal Kapu", body:"Protect herbivores (manini & uhu).", good:{reef:+8, fish:+6}, bad:{reef:-4, fish:-2} },
-  { title:"Ban Lay Nets", body:"Reduce bycatch; juvenile protection.", good:{reef:+6, fish:+7}, bad:{reef:-3, fish:-4} },
-  { title:"Tourism Education", body:"Snorkelers avoid coral contact.", good:{reef:+5, fish:+2}, bad:{reef:-2, fish:-1} },
-  { title:"Invasive Algae Removal", body:"Urchin planting.", good:{reef:+9, fish:+4}, bad:{reef:-5, fish:-2} },
-  { title:"Bleaching Response", body:"Full kapu during heatwaves.", good:{reef:+10, fish:+6}, bad:{reef:-6, fish:-5} },
-  { title:"Spearfish Derby", body:"Short boost vs brood loss.", good:{reef:-6, fish:-10}, bad:{reef:+2, fish:+1} }
+  { title:"Seasonal Kapu",           body:"Protect herbivores (manini & uhu).",          good:{reef:+8,  fish:+6},  bad:{reef:-4, fish:-2} },
+  { title:"Ban Lay Nets",            body:"Reduce bycatch; juvenile protection.",        good:{reef:+6,  fish:+7},  bad:{reef:-3, fish:-4} },
+  { title:"Tourism Education",       body:"Snorkelers avoid coral contact.",             good:{reef:+5,  fish:+2},  bad:{reef:-2, fish:-1} },
+  { title:"Invasive Algae Removal",  body:"Urchin planting.",                            good:{reef:+9,  fish:+4},  bad:{reef:-5, fish:-2} },
+  { title:"Bleaching Response",      body:"Full kapu during heatwaves.",                 good:{reef:+10, fish:+6},  bad:{reef:-6, fish:-5} },
+  { title:"Spearfish Derby",         body:"Short boost vs brood loss.",                  good:{reef:-6, fish:-10},  bad:{reef:+2, fish:+1} }
 ];
 
 function renderCards(){
@@ -128,7 +140,7 @@ function renderCards(){
 function apply(effect, msg){
   if(state.turns<=0) return toast("No turns left");
   state.reefHealth = clamp(state.reefHealth + effect.reef);
-  state.fishPop = clamp(state.fishPop + effect.fish);
+  state.fishPop    = clamp(state.fishPop + effect.fish);
   state.turns--;
   updateHUD(); drawZones(); toast(msg);
   state.turns===0 ? end() : renderCards();
@@ -164,4 +176,4 @@ function renderDex(){
 // ===== Init =====
 updateHUD();
 renderCards();
-setTimeout(initMap,50);
+setTimeout(initMap, 50);
