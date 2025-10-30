@@ -1,4 +1,4 @@
-// === keep partner UI; just wire actions ===
+// ===== Keep partner look; wire sidebar actions =====
 
 // Sidebar collapse / expand
 const sidebar = document.querySelector('.sidebar');
